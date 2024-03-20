@@ -17,6 +17,10 @@ def first_time_setup():
     nltk.data.path = ["D:\\nltk_data"]
     nltk.download('all',download_dir="D:\\nltk_data")
 
+def load_data(file_path):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
 
 # create preprocess_text function
 def preprocess_text(title, text):
@@ -42,28 +46,22 @@ def preprocess_text(title, text):
 
     return processed_text
 
-# create get_sentiment function
-def get_sentiment(text):
-    scores = analyzer.polarity_scores(text)
-    # sentiment = 1 if scores['pos'] > 0 else 0
-    sentiment = scores['compound']
-    return sentiment
-
-def load_data(file_path):
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-    return data
+def perform_sentiment_analysis(text):
+    analyzer = SentimentIntensityAnalyzer()
+    sentiment_score = analyzer.polarity_scores(text)
+    return sentiment_score
 
 
 def main():
     data = load_data('newsArticle.json')
     for article in data:
         article['processed_text'] = preprocess_text(article['title'], article['text'])
+        article['sentiment_score'] = perform_sentiment_analysis(article['processed_text']).get('compound')
 
 
 if __name__ == "__main__":
     # first_time_setup()
-    # create SentimentIntensityAnalyzer object
+
     analyzer = SentimentIntensityAnalyzer()
     main()
     print("Done!")
