@@ -12,7 +12,7 @@ class TextPreprocessor:
     def preprocess_text(self, title, text):
         # Remove unnecessaries from the text
         combined_text =  title + ' ' + text
-        # combined_text = re.sub('\s+', ' ', combined_text)  # remove newline chars
+        combined_text = combined_text.strip() # remove newline chars
         combined_text = re.sub(r'http\S+', '', combined_text) # remove URLs
         combined_text = re.sub(r'www\S+', '', combined_text) # remove URLs
         combined_text = re.sub("\'", "", combined_text)  # remove single quotes
