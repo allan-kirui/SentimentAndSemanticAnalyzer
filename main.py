@@ -1,15 +1,13 @@
 # import libraries
-import pandas as pd
-import nltk
 import os
+import nltk
 import json
 import re
 
-# from pyspark.sql import SparkSession
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
+from TextPreprocessor import TextPreprocessor
+from SentimentAnalyzer import SentimentAnalyzer
+from SemanticAnalyzer import SemanticAnalyzer
+
 
 def first_time_setup():
     # download nltk corpus (first time only)
@@ -22,46 +20,26 @@ def load_data(file_path):
         data = json.load(file)
     return data
 
-# create preprocess_text function
-def preprocess_text(title, text):
-    # Remove unnecessaries from the text
-    combined_text =  title + ' ' + text
-    combined_text = re.sub(r'http\S+', '', combined_text)
-    combined_text = re.sub(r'www\S+', '', combined_text)
-    combined_text = re.sub(r'[^A-Za-z0-9]+', ' ', combined_text)
-    combined_text = combined_text.lower()
-
-    tokens = word_tokenize(combined_text.lower())
-
-    # Remove stop words
-    stop_words = set(stopwords.words('english'))
-    tokens = [token for token in tokens if token not in stop_words]
-
-    # Lemmatize the tokens
-    lemmatizer = WordNetLemmatizer()
-    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
-
-    # Join the tokens back into a string
-    processed_text = ' '.join(lemmatized_tokens)
-
-    return processed_text
-
-def perform_sentiment_analysis(text):
-    analyzer = SentimentIntensityAnalyzer()
-    sentiment_score = analyzer.polarity_scores(text)
-    return sentiment_score
-
-
 def main():
     data = load_data('newsArticle.json')
+    text_preprocessor = TextPreprocessor()
+    sentiment_analyzer = SentimentAnalyzer()
+    semantic_analyzer = SemanticAnalyzer()
+
+    processed_texts = []  # List to store tokenized documents
+
     for article in data:
-        article['processed_text'] = preprocess_text(article['title'], article['text'])
-        article['sentiment_score'] = perform_sentiment_analysis(article['processed_text']).get('compound')
+        processed_text = text_preprocessor.preprocess_text(article['title'], article['text'])
+        article['sentiment_score'] = sentiment_analyzer.perform_sentiment_analysis(processed_text)
+        article['processed_text'] = processed_text
+        processed_texts.append(processed_text.split())  # Split processed text into tokens and add to list
+
+    semantic_analyzer.train_lda_model(processed_texts)
+    semantic_analyzer.visualize_topics()
 
 
 if __name__ == "__main__":
     # first_time_setup()
 
-    analyzer = SentimentIntensityAnalyzer()
     main()
-    print("Done!")
+    
