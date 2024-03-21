@@ -1,0 +1,7 @@
+.idea
+.venv
+
+
+instructions.txt
+newsfile.txt
+__pycache__
